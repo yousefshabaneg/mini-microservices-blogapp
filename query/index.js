@@ -8,13 +8,7 @@ app.use(express.json());
 
 const posts = {};
 
-app.get("/posts", (req, res) => {
- res.status(200).json(posts);
-});
-
-app.post("/events", async (req, res) => {
- const { type, data } = req.body;
-
+const handleEvent = (type, data) => {
  if (type === "PostCreated") {
   const { id, title } = data;
   posts[id] = { id, title, comments: [] };
@@ -26,13 +20,29 @@ app.post("/events", async (req, res) => {
   const comment = posts[postId].comments.find((c) => c.id === id);
   Object.assign(comment, { status, content });
  }
+};
 
- console.log("Received Event: ", req.body.type);
+app.get("/posts", (req, res) => {
+ res.status(200).json(posts);
+});
+
+app.post("/events", async (req, res) => {
+ const { type, data } = req.body;
+
+ handleEvent(type, data);
 
  res.json({});
 });
 
 const PORT = 4002;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
  console.log(`Listening on http://localhost:${PORT}`);
+
+ const res = await axios.get("http://localhost:4005/events");
+
+ for (const event of res.data) {
+  console.log(`Processing Event: ${event.type}`);
+
+  handleEvent(event.type, event.data);
+ }
 });
