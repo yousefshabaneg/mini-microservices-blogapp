@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const Post = require("./Post");
 const cors = require("cors");
 
@@ -10,10 +11,21 @@ app.get("/posts", (req, res) => {
  res.status(200).json(Post.getAllPosts());
 });
 
-app.post("/posts", (req, res) => {
+app.post("/posts", async (req, res) => {
  const { title } = req.body;
  const createdPost = Post.createNewPost(title);
+
+ await axios.post("http://localhost:4005/events", {
+  type: "PostCreated",
+  data: createdPost,
+ });
  res.status(201).json(createdPost);
+});
+
+app.post("/events", (req, res) => {
+ console.log("Received Event: ", req.body.type);
+
+ res.json({});
 });
 
 const PORT = 4000;

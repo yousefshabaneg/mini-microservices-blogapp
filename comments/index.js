@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const Comment = require("./Comment");
 const cors = require("cors");
 
@@ -11,11 +12,25 @@ app.get("/posts/:id/comments", (req, res) => {
  res.status(200).json(Comment.getCommentsByPostId(id));
 });
 
-app.post("/posts/:id/comments", (req, res) => {
+app.post("/posts/:id/comments", async (req, res) => {
  const { content } = req.body;
  const { id } = req.params;
  const createdComment = Comment.addCommentToPost(id, content);
+ await axios.post("http://localhost:4005/events", {
+  type: "CommentCreated",
+  data: {
+   ...createdComment,
+   postId: id,
+   status: "pending",
+  },
+ });
  res.status(201).json(createdComment);
+});
+
+app.post("/events", (req, res) => {
+ console.log("Received Event: ", req.body.type);
+
+ res.json({});
 });
 
 const PORT = 4001;

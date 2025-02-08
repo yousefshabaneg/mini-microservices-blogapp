@@ -17,7 +17,7 @@ class Comment {
    this.#commentsByPostId[postId] = [];
   }
   this.#commentsByPostId[postId].push({ id, content });
-  return this.#commentsByPostId[postId];
+  return { id, content };
  }
 }
 
